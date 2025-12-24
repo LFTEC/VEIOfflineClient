@@ -1,26 +1,27 @@
 ﻿using DevExpress.XtraBars.Ribbon;
+using Microsoft.Extensions.Options;
 
 namespace VEIOfflineClient
 {
     public partial class Form1 : RibbonForm
     {
-        public Form1()
+        private readonly IOptionsSnapshot<ActivateInfo> _options;
+        private readonly DXItem1 _activateForm;
+        public Form1(IOptionsSnapshot<ActivateInfo> options, DXItem1 activateForm)
         {
             InitializeComponent();
+            _options = options;
+            _activateForm = activateForm;
         }
 
-        private string _device_id;
+        private string _device_id = string.Empty;
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            try
+
+            if (String.IsNullOrEmpty(_options.Value.ActivateCode))
             {
-                _device_id = DeviceId.Get();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error retrieving device ID: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _device_id = "UnknownDevice";
+                _activateForm.ShowDialog();
             }
         }
     }
