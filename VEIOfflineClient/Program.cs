@@ -32,7 +32,15 @@ namespace VEIOfflineClient
             var configuration = builder.Configuration;
             configuration.AddJsonFile(configFile, optional: true, reloadOnChange: true);
 
-            service.Configure<ActivateInfo>(configuration.GetSection("Secret"));
+            var secret = configuration.GetSection("Secret");
+            service.Configure<ActivateInfo>(secret);
+            var activateInfo = secret.Get<ActivateInfo>();
+
+            SecurityConfigurationProvider securityConfigurationProvider = new SecurityConfigurationProvider();
+            securityConfigurationProvider.SetDecryptedValue(DeviceId.Get(), activateInfo?.ActivateCode);
+            ((IConfigurationBuilder)configuration).Add(new SecurityConfigurationSource(securityConfigurationProvider));
+
+
 
             service.AddSingleton<ConfigService>();
             service.AddTransient<Form1>();
