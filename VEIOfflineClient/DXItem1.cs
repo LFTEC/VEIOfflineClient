@@ -7,11 +7,13 @@ public partial class DXItem1 : XtraForm
 {
     private readonly IOptionsSnapshot<ActivateInfo> _options;
     private readonly ConfigService _configService;
-    public DXItem1(IOptionsSnapshot<ActivateInfo> options, ConfigService configService)
+    private readonly SecurityConfigurationProvider _security;
+    public DXItem1(IOptionsSnapshot<ActivateInfo> options, SecurityConfigurationProvider security, ConfigService configService)
     {
         InitializeComponent();
         _options = options;
         _configService = configService;
+        _security = security;
     }
 
     private void DXItem1_Load(object sender, EventArgs e)
@@ -28,8 +30,19 @@ public partial class DXItem1 : XtraForm
     {
         if(!String.IsNullOrEmpty(textEdit2.Text))
         {
-            _configService.UpdateActivateInfo(info => info.ActivateCode = textEdit2.Text.Trim());
+            try
+            {
+                _security.SetDecryptedValue(_options.Value.DeviceId, textEdit2.Text.Trim());
+                _configService.UpdateActivateInfo(info => info.ActivateCode = textEdit2.Text.Trim());
+            }
+            catch (Exception ex)
+            {
+                XtraMessageBox.Show(ex.Message, "激活错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            
             XtraMessageBox.Show("激活成功！");
+            this.Close();
         }
         else
         {

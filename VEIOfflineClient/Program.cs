@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Options;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 
 namespace VEIOfflineClient
@@ -32,6 +34,8 @@ namespace VEIOfflineClient
             var configuration = builder.Configuration;
             configuration.AddJsonFile(configFile, optional: true, reloadOnChange: true);
 
+            service.Configure<EnvironmentInfo>(configuration.GetSection("Environment"));
+
             var secret = configuration.GetSection("Secret");
             service.Configure<ActivateInfo>(secret);
             var activateInfo = secret.Get<ActivateInfo>();
@@ -39,8 +43,28 @@ namespace VEIOfflineClient
             SecurityConfigurationProvider securityConfigurationProvider = new SecurityConfigurationProvider();
             securityConfigurationProvider.SetDecryptedValue(DeviceId.Get(), activateInfo?.ActivateCode);
             ((IConfigurationBuilder)configuration).Add(new SecurityConfigurationSource(securityConfigurationProvider));
+            service.Configure<SecurityInfo>(configuration.GetSection("Security"));
+            service.AddSingleton(securityConfigurationProvider);
 
-
+            service.AddHttpClient<ICallApiService, CallApiService>((provider,client) =>
+            {
+                var environment = provider.GetRequiredService<IOptions<EnvironmentInfo>>().Value;
+                var security = provider.GetRequiredService<IOptionsMonitor<SecurityInfo>>().CurrentValue;
+                client.BaseAddress = new Uri(environment.BaseUrl);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.DefaultRequestHeaders.Remove("Date");
+                client.DefaultRequestHeaders.Add("X-Ca-Stage", "PRE");
+                client.DefaultRequestHeaders.Add("X-Ca-Signature-Headers", "X-Ca-Stage");
+                client.DefaultRequestHeaders.Add("x-ca-key", security.AppKey);
+                client.DefaultRequestHeaders.Add("x-ca-signature-method", "HmacSHA256");
+            }).ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                return new HttpClientHandler
+                {
+                    SslProtocols = System.Security.Authentication.SslProtocols.Tls12
+                };
+            });
 
             service.AddSingleton<ConfigService>();
             service.AddTransient<Form1>();
