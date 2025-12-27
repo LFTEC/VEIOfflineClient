@@ -202,7 +202,9 @@
             ClientSize = new Size(483, 186);
             Controls.Add(layoutControl1);
             Name = "DXItem1";
-            Text = "Form1";
+            Text = "激活程序";
+            FormClosing += DXItem1_FormClosing;
+            FormClosed += DXItem1_FormClosed;
             Load += DXItem1_Load;
             ((System.ComponentModel.ISupportInitialize)layoutControl1).EndInit();
             layoutControl1.ResumeLayout(false);

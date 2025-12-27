@@ -149,6 +149,7 @@ namespace VEIOfflineClient
         public string Stage { get; set; } = string.Empty;
         public string BaseUrl { get; set; } = string.Empty;
         public string Path { get; set; } = string.Empty; 
+        public string UpdatePath { get; set; } = string.Empty;
     }
 
     public record MasterData(string material, string materialDesc, bool deleted, string longText, string purLongText, string unit, string matType);

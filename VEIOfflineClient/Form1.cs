@@ -91,14 +91,10 @@ namespace VEIOfflineClient
                 WorksheetTableDataBinding sheetDataBinding = sheet.DataBindings.BindTableToDataSource(list, bindingRange, options);
                 sheetDataBinding.Table.Style = spreadsheetControl.Document.TableStyles[BuiltInTableStyleId.TableStyleMedium2];
 
-                // Adjust the column width.
-                var range = sheet.GetUsedRange();
-                range.AutoFitColumns();
-                spreadsheetControl.WorksheetDisplayArea.SetSize(sheet.Index, range.ColumnCount, range.RowCount);
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message, "Binding Exception");
+                XtraMessageBox.Show(this, e.Message, "Binding Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -107,7 +103,7 @@ namespace VEIOfflineClient
         //保存
         private async void barButtonItem3_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
         {
-            if(XtraMessageBox.Show("确定要保存备库库存到万华系统吗？\n 注意：所有未维护备库量的物资备库库存都将被清空！","请注意",MessageBoxButtons.YesNo,MessageBoxIcon.Asterisk,MessageBoxDefaultButton.Button1) != DialogResult.Yes)
+            if(XtraMessageBox.Show(this, "确定要保存备库库存到万华系统吗？\n 注意：所有未维护备库量的物资备库库存都将被清空！","请注意",MessageBoxButtons.YesNo,MessageBoxIcon.Asterisk,MessageBoxDefaultButton.Button1) != DialogResult.Yes)
             {
                 return;
             }
@@ -118,7 +114,7 @@ namespace VEIOfflineClient
             }
             if (stocks.Any(s => s.Quantity < 0))
             {
-                XtraMessageBox.Show("备库数量维护不正确，必须为正数", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                XtraMessageBox.Show(this, "备库数量维护不正确，必须为正数", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -133,12 +129,12 @@ namespace VEIOfflineClient
 
                 var response = await _apiService.SendStockInfoAsync(items);
 
-                MessageBox.Show("库存调整请求发送成功.");
+                XtraMessageBox.Show(this,"库存调整请求发送成功.", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"发送库存调整请求时发生错误: {ex.Message}");
+                XtraMessageBox.Show(this, $"发送库存调整请求时发生错误: {ex.Message}","错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -149,24 +145,33 @@ namespace VEIOfflineClient
             {
                 spreadsheetControl.CloseCellEditor(DevExpress.XtraSpreadsheet.CellEditorEnterValueMode.Default);
             }
-            var data = await _apiService.GetMasterDataAsync();
-            bindingStocks.Clear();
-            foreach (var item in data.Where(s => s.deleted == false))
-            {
-                bindingStocks.Add(new StockData
-                {
-                    Material = item.material,
-                    MaterialDesc = item.materialDesc,
-                    MatType = item.matType,
-                    LongText = item.longText,
-                    PurLongText = item.purLongText,
-                    Quantity = 0m,
-                    Unit = item.unit
 
-                });
+            try
+            {
+                var data = await _apiService.GetMasterDataAsync();
+                bindingStocks.Clear();
+                foreach (var item in data.Where(s => s.deleted == false))
+                {
+                    bindingStocks.Add(new StockData
+                    {
+                        Material = item.material,
+                        MaterialDesc = item.materialDesc,
+                        MatType = item.matType,
+                        LongText = item.longText,
+                        PurLongText = item.purLongText,
+                        Quantity = 0m,
+                        Unit = item.unit
+
+                    });
+                }
+
+                RefreshData();
+            }
+            catch (Exception ex)
+            {
+                XtraMessageBox.Show(this, $"获取备库清单时发生错误: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
-            RefreshData();
         }
 
         //重新激活
@@ -174,12 +179,12 @@ namespace VEIOfflineClient
         {
             try
             {
-                _activateForm.ShowDialog();
+                _activateForm.ShowDialog(this);
                 barButtonItem2.PerformClick();
             }
             catch (Exception)
             {
-                MessageBox.Show("未知错误");
+                XtraMessageBox.Show(this, "未知错误", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             
         }

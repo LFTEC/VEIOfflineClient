@@ -1,11 +1,14 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DevExpress.Utils.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
+using Velopack;
 
 namespace VEIOfflineClient
 {
@@ -19,12 +22,17 @@ namespace VEIOfflineClient
         {
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
+            VelopackApp.Build().Run();
+
             ApplicationConfiguration.Initialize();
             string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VEIOfflineClient");
             string configFile = Path.Combine(appDataPath, "config.json");
-            if(!Path.Exists(appDataPath))
+            if(!File.Exists(configFile))
             {
-                Directory.CreateDirectory(appDataPath);
+                if(!Path.Exists(appDataPath))
+                {
+                    Directory.CreateDirectory(appDataPath);
+                }                
                 var config = new { Secret = new ActivateInfo() };
                 File.WriteAllText(configFile, JsonSerializer.Serialize(config));
             }
@@ -34,17 +42,60 @@ namespace VEIOfflineClient
             var configuration = builder.Configuration;
             configuration.AddJsonFile(configFile, optional: true, reloadOnChange: true);
 
-            service.Configure<EnvironmentInfo>(configuration.GetSection("Environment"));
+            try
+            {
+                var envSection = configuration.GetSection("Environment");
+                service.Configure<EnvironmentInfo>(envSection);
+                var environmentInfo = envSection.Get<EnvironmentInfo>();
 
-            var secret = configuration.GetSection("Secret");
-            service.Configure<ActivateInfo>(secret);
-            var activateInfo = secret.Get<ActivateInfo>();
+                var mgr = new UpdateManager(environmentInfo!.UpdatePath);
+                var currentVersion = mgr.CurrentVersion!;
 
-            SecurityConfigurationProvider securityConfigurationProvider = new SecurityConfigurationProvider();
-            securityConfigurationProvider.SetDecryptedValue(DeviceId.Get(), activateInfo?.ActivateCode);
-            ((IConfigurationBuilder)configuration).Add(new SecurityConfigurationSource(securityConfigurationProvider));
-            service.Configure<SecurityInfo>(configuration.GetSection("Security"));
-            service.AddSingleton(securityConfigurationProvider);
+                try
+                {
+                    var httpClient = new HttpClient();
+                    httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
+                    var versionInfo = httpClient.GetFromJsonAsync<VersionInfo>($"{environmentInfo.UpdatePath}version.json").GetAwaiter().GetResult();
+                    var minVersion = NuGet.Versioning.NuGetVersion.Parse(versionInfo!.minVersion);
+                    if (currentVersion < minVersion)
+                    {
+                        UpdateVersionHardAsync(environmentInfo.UpdatePath).GetAwaiter().GetResult();
+                    }
+                    else
+                    {
+                        Task.Run(async () =>
+                        {
+                            await UpdateVersionSoftAsync(environmentInfo.UpdatePath);
+                        });
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+                
+                
+
+                var secret = configuration.GetSection("Secret");
+                service.Configure<ActivateInfo>(secret);
+                var activateInfo = secret.Get<ActivateInfo>();
+
+                SecurityConfigurationProvider securityConfigurationProvider = new SecurityConfigurationProvider();
+                securityConfigurationProvider.SetDecryptedValue(DeviceId.Get(), activateInfo?.ActivateCode);
+                ((IConfigurationBuilder)configuration).Add(new SecurityConfigurationSource(securityConfigurationProvider));
+                service.Configure<SecurityInfo>(configuration.GetSection("Security"));
+                service.AddSingleton(securityConfigurationProvider);
+            }
+            catch(HttpRequestException)
+            {
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Configuration error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
 
             service.AddHttpClient<ICallApiService, CallApiService>((provider,client) =>
             {
@@ -85,5 +136,39 @@ namespace VEIOfflineClient
 
             host.StopAsync().GetAwaiter().GetResult();
         }
+
+        static async Task UpdateVersionHardAsync(string updatePath)
+        {
+            var mgr = new UpdateManager(updatePath);
+            var newVersion = await mgr.CheckForUpdatesAsync();
+            if (newVersion == null) return;
+
+            var splash = new SplashScreen1();
+            splash.Show();
+            await mgr.DownloadUpdatesAsync(newVersion, progress =>
+            {
+                splash.ProcessCommand(SplashScreen1.SplashScreenCommand.SetProgress, progress);
+
+            });
+
+            splash.Close();
+            mgr.ApplyUpdatesAndRestart(newVersion);
+        }
+
+        static async Task UpdateVersionSoftAsync(string updatePath)
+        {
+            var mgr = new UpdateManager(updatePath);
+            var newVersion = await mgr.CheckForUpdatesAsync();
+            if (newVersion == null) return;
+
+            await mgr.DownloadUpdatesAsync(newVersion);
+
+        }
     }
+
+    internal record VersionInfo(string minVersion, string latestVersion);
+
+
+
+
 }
