@@ -29,27 +29,15 @@
 		private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SplashScreen1));
-            progressBarControl = new DevExpress.XtraEditors.MarqueeProgressBarControl();
             labelCopyright = new DevExpress.XtraEditors.LabelControl();
             labelStatus = new DevExpress.XtraEditors.LabelControl();
             peImage = new DevExpress.XtraEditors.PictureEdit();
             peLogo = new DevExpress.XtraEditors.PictureEdit();
             progressBarControl1 = new DevExpress.XtraEditors.ProgressBarControl();
-            ((System.ComponentModel.ISupportInitialize)progressBarControl.Properties).BeginInit();
             ((System.ComponentModel.ISupportInitialize)peImage.Properties).BeginInit();
             ((System.ComponentModel.ISupportInitialize)peLogo.Properties).BeginInit();
             ((System.ComponentModel.ISupportInitialize)progressBarControl1.Properties).BeginInit();
             SuspendLayout();
-            // 
-            // progressBarControl
-            // 
-            progressBarControl.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            progressBarControl.EditValue = 0;
-            progressBarControl.Location = new Point(28, 250);
-            progressBarControl.Margin = new Padding(4, 3, 4, 3);
-            progressBarControl.Name = "progressBarControl";
-            progressBarControl.Size = new Size(469, 13);
-            progressBarControl.TabIndex = 5;
             // 
             // labelCopyright
             // 
@@ -105,7 +93,7 @@
             // 
             // progressBarControl1
             // 
-            progressBarControl1.Location = new Point(28, 269);
+            progressBarControl1.Location = new Point(28, 253);
             progressBarControl1.Name = "progressBarControl1";
             progressBarControl1.Size = new Size(469, 13);
             progressBarControl1.TabIndex = 10;
@@ -120,12 +108,10 @@
             Controls.Add(peLogo);
             Controls.Add(labelStatus);
             Controls.Add(labelCopyright);
-            Controls.Add(progressBarControl);
             Margin = new Padding(4, 3, 4, 3);
             Name = "SplashScreen1";
             Padding = new Padding(1);
             Text = "SplashScreen1";
-            ((System.ComponentModel.ISupportInitialize)progressBarControl.Properties).EndInit();
             ((System.ComponentModel.ISupportInitialize)peImage.Properties).EndInit();
             ((System.ComponentModel.ISupportInitialize)peLogo.Properties).EndInit();
             ((System.ComponentModel.ISupportInitialize)progressBarControl1.Properties).EndInit();
@@ -135,8 +121,6 @@
         }
 
         #endregion
-
-        private DevExpress.XtraEditors.MarqueeProgressBarControl progressBarControl;
         private DevExpress.XtraEditors.LabelControl labelCopyright;
         private DevExpress.XtraEditors.LabelControl labelStatus;
         private DevExpress.XtraEditors.PictureEdit peLogo;

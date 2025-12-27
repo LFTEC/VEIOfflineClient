@@ -1,4 +1,5 @@
 ﻿using DevExpress.Utils.Extensions;
+using DevExpress.XtraEditors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -55,11 +56,28 @@ namespace VEIOfflineClient
                 {
                     var httpClient = new HttpClient();
                     httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
-                    var versionInfo = httpClient.GetFromJsonAsync<VersionInfo>($"{environmentInfo.UpdatePath}version.json").GetAwaiter().GetResult();
+                    httpClient.BaseAddress = new Uri(environmentInfo.UpdatePath);
+                    var versionInfo = httpClient.GetFromJsonAsync<VersionInfo>($"version.json").GetAwaiter().GetResult();
+
                     var minVersion = NuGet.Versioning.NuGetVersion.Parse(versionInfo!.minVersion);
                     if (currentVersion < minVersion)
                     {
-                        UpdateVersionHardAsync(environmentInfo.UpdatePath).GetAwaiter().GetResult();
+                        var splash = new SplashScreen1();
+                        splash.Load += async (s, e) =>
+                        {
+                            try
+                            {
+                                await UpdateVersionHardAsync(environmentInfo.UpdatePath, splash);
+                                splash.Close();
+                            }
+                            catch(Exception ex)
+                            {
+                                XtraMessageBox.Show(ex.ToString(), "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                splash.Close();
+                            }
+                        };
+
+                        splash.ShowDialog();
                     }
                     else
                     {
@@ -69,9 +87,9 @@ namespace VEIOfflineClient
                         });
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-
+                    MessageBox.Show(ex.ToString(), "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 
                 
@@ -137,21 +155,22 @@ namespace VEIOfflineClient
             host.StopAsync().GetAwaiter().GetResult();
         }
 
-        static async Task UpdateVersionHardAsync(string updatePath)
+        static async Task UpdateVersionHardAsync(string updatePath, SplashScreen1 splash)
         {
             var mgr = new UpdateManager(updatePath);
             var newVersion = await mgr.CheckForUpdatesAsync();
             if (newVersion == null) return;
 
-            var splash = new SplashScreen1();
-            splash.Show();
             await mgr.DownloadUpdatesAsync(newVersion, progress =>
             {
-                splash.ProcessCommand(SplashScreen1.SplashScreenCommand.SetProgress, progress);
+                splash.BeginInvoke(() =>
+                {
+                    splash.ProcessCommand(SplashScreen1.SplashScreenCommand.SetProgress, progress);
+                });
+                
 
             });
 
-            splash.Close();
             mgr.ApplyUpdatesAndRestart(newVersion);
         }
 
