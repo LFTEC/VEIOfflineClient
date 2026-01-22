@@ -3953,7 +3953,7 @@
             spreadsheetFormulaBar.AccessibleName = "Formula bar";
             spreadsheetFormulaBar.Dock = DockStyle.Top;
             spreadsheetFormulaBar.Location = new Point(0, 0);
-            spreadsheetFormulaBar.Margin = new Padding(5, 22, 5, 22);
+            spreadsheetFormulaBar.Margin = new Padding(5, 33, 5, 33);
             spreadsheetFormulaBar.MinimumSize = new Size(0, 24);
             spreadsheetFormulaBar.Name = "spreadsheetFormulaBar";
             spreadsheetFormulaBar.Size = new Size(1283, 24);
@@ -4303,6 +4303,7 @@
             Controls.Add(ribbonControl1);
             Controls.Add(ribbonStatusBar1);
             Font = new Font("微软雅黑", 9F);
+            IconOptions.Icon = (Icon)resources.GetObject("Form1.IconOptions.Icon");
             Margin = new Padding(4, 5, 4, 5);
             Name = "Form1";
             Ribbon = ribbonControl1;
