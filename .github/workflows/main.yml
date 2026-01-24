@@ -134,6 +134,7 @@ jobs:
       run: >
         vpk pack -o "${{github.workspace}}\release\${{ matrix.rid }}\${{ matrix.environment}}" --runtime ${{ matrix.rid }} --packId ${{ env.Project_Name }}_${{ matrix.environment }}
         --packVersion ${{ env.REL_VER }} --packDir "${{ github.workspace }}\publish\Release\${{ matrix.rid }}" --packAuthors Wanhua --packTitle VEI单机版${{ matrix.environment }}
+        -e ${{ env.Project_Name }}.exe
     
     - name: Upload Package
       run: >
