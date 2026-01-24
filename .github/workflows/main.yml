@@ -80,7 +80,7 @@ jobs:
       Solution_Name: VEIOfflineClient.slnx                         # Replace with your solution name, i.e. MyWpfApp.sln.
       UI_Project_Path: VEIOfflineClient\VEIOfflineClient.csproj    # Replace with the Wap project directory relative to the solution, i.e. MyWpfApp.Package.
       Project_Name: VEIOfflineClient                             # Replace with your project name, i.e. MyWpfApp.
-      DX_KEY: ${{ secrets.DEVEXPRESS_LICENSE_KEY }}
+      DevExpress_License: ${{ secrets.DEVEXPRESS_LICENSE_KEY }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -92,12 +92,6 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    
-    - name: Setup Devexpress License
-      shell: pwsh
-      run: |
-        dotnet tool install -g DevExpress.GlobalTools --version 25.2.3
-        devexpress globaltools activate -k ${{ env.DX_KEY }}
     
     - name: Install Velopack CLI
       run: dotnet tool install -g vpk
