@@ -178,7 +178,7 @@ jobs:
       continue-on-error: true
       run: >
         vpk download s3 -o "${{github.workspace}}\release" --keyId ${{secrets.CLOUD_KEY}} --secret ${{secrets.CLOUD_SECRET}} 
-        --endpoint https://cos.ap-chengdu.myqcloud.com --bucket common-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
+        --endpoint https://cos.ap-tokyo.myqcloud.com --bucket vei-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
         --disablePathStyle
 
     
@@ -191,5 +191,5 @@ jobs:
     - name: Upload Package
       run: >
         vpk upload s3 -o "${{github.workspace}}\release" --keyId ${{secrets.CLOUD_KEY}} --secret ${{secrets.CLOUD_SECRET}}
-        --endpoint https://cos.ap-chengdu.myqcloud.com --bucket common-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
+        --endpoint https://cos.ap-tokyo.myqcloud.com --bucket vei-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
         --disablePathStyle
