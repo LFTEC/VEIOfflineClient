@@ -63,10 +63,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_PREFIX: ''
           DEFAULT_BUMP: patch
+  get_version:
+    if: always() && ( needs.create-tag.result == 'success' || startsWith(github.ref, 'refs/tags/') )
+    needs: [create-tag]
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_versions.outputs.REL_VER }}
+    steps:
+    - name: Set Version Env
+      id: set_versions
+      shell: bash
+      run: |
+        if [ "${{ github.ref_type }}" == "tag" ]; then
+          VERSION="${{ github.ref_name }}"
+        elif [ -n "${{ needs.create-tag.outputs.new_tag }}" ]; then
+          VERSION="${{ needs.create-tag.outputs.new_tag }}"
+        else
+          echo "错误：无法获取有效的版本号。" >&2
+          exit 1
+        fi
+        echo "REL_VER=$VERSION" >> $GITHUB_OUTPUT
   build:
     if: |
-      needs.create-tag.result == 'success' || startsWith(github.ref, 'refs/tags/') 
-    needs: [create-tag]
+      needs.get_version.result == 'success'
+    needs: [get_version]
     strategy:
       matrix:
         rid: [win-x64, win-x86]  # Add other RIDs as needed. Refer to
@@ -79,8 +99,8 @@ jobs:
     env:
       Solution_Name: VEIOfflineClient.slnx                         # Replace with your solution name, i.e. MyWpfApp.sln.
       UI_Project_Path: VEIOfflineClient\VEIOfflineClient.csproj    # Replace with the Wap project directory relative to the solution, i.e. MyWpfApp.Package.
-      Project_Name: VEIOfflineClient                             # Replace with your project name, i.e. MyWpfApp.
       DevExpress_License: ${{ secrets.DEVEXPRESS_LICENSE_KEY }}
+      REL_VER: ${{ needs.get_version.outputs.version }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -93,51 +113,83 @@ jobs:
       with:
         dotnet-version: 8.0.x
     
-    - name: Install Velopack CLI
-      run: dotnet tool install -g vpk
 
-    - name: Set Version Env
-      shell: bash
-      run: |
-        if [ "${{ github.ref_type }}" == "tag" ]; then
-          echo "REL_VER=${{ github.ref_name }}" >> $GITHUB_ENV
-        elif [ -n "${{ needs.create-tag.outputs.new_tag }}" ]; then
-          echo "REL_VER=${{needs.create-tag.outputs.new_tag}}" >> $GITHUB_ENV
-        else
-          echo "错误：无法获取有效的版本号。" >&2
-          exit 1
-        fi
     # Remove the pfx
     - name: Publish
       run: >
         dotnet publish ${{ env.UI_Project_Path }} -c Release -r ${{ matrix.rid }} 
         -f net8.0-windows --self-contained -p:PublishReadyToRun=true 
-        -o "${{ github.workspace }}\publish\Release\${{ matrix.rid }}" -p:Version=${{ env.REL_VER }}
+        -o "${{ github.workspace }}\publish" -p:Version=${{ env.REL_VER }}
     
     - name: Update appSettings.json
       shell: pwsh
       run: |
-        $path = "${{ github.workspace }}\publish\Release\${{ matrix.rid }}\appsettings.json"
+        $path = "${{ github.workspace }}\publish\appsettings.json"
         $json = Get-Content $path | ConvertFrom-Json
 
         $json.Environment.Stage = "${{ matrix.environment }}"
         $json | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding UTF8
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.rid }}-${{ matrix.environment }}-build
+        path: ${{ github.workspace }}/publish
+
+  deploy:
+    if: |
+      needs.build.result == 'success'
+    needs: [build, get_version]
+    runs-on: windows-latest
+    concurrency:
+      group: 'deploy-${{ matrix.rid }}-${{ matrix.environment }}'
+      cancel-in-progress: false
+    strategy:
+      max-parallel: 1
+      matrix:
+        rid: [win-x64, win-x86]  # Add other RIDs as needed. Refer to
+                                    # https://docs.microsoft.com/en-us/dotnet/core/rid-catalog for a list of RIDs.
+        environment: [PRE, RELEASE]  # Define environments if needed.
+    env:
+      Project_Name: VEIOfflineClient                             # Replace with your project name, i.e. MyWpfApp.
+      REL_VER: ${{ needs.get_version.outputs.version }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Create Deployment Tag
+      run: echo "Deployed version ${{ env.REL_VER }}"
+
+    - name: Install Velopack CLI
+      run: dotnet tool install -g vpk
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ matrix.rid }}-${{ matrix.environment }}-build
+        path: ${{ github.workspace }}/publish
 
     - name: Download Remote Package
+      continue-on-error: true
       run: >
-        vpk download s3 -o "${{github.workspace}}\release\${{ matrix.rid }}\${{ matrix.environment}}" --keyId ${{secrets.CLOUD_KEY}} --secret ${{secrets.CLOUD_SECRET}} 
+        vpk download s3 -o "${{github.workspace}}\release" --keyId ${{secrets.CLOUD_KEY}} --secret ${{secrets.CLOUD_SECRET}} 
         --endpoint https://cos.ap-chengdu.myqcloud.com --bucket common-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
         --disablePathStyle
 
     
     - name: Create Package
       run: >
-        vpk pack -o "${{github.workspace}}\release\${{ matrix.rid }}\${{ matrix.environment}}" --runtime ${{ matrix.rid }} --packId ${{ env.Project_Name }}_${{ matrix.environment }}
-        --packVersion ${{ env.REL_VER }} --packDir "${{ github.workspace }}\publish\Release\${{ matrix.rid }}" --packAuthors Wanhua --packTitle VEI单机版${{ matrix.environment }}
+        vpk pack -o "${{github.workspace}}\release" --runtime ${{ matrix.rid }} --packId ${{ env.Project_Name }}_${{ matrix.environment }}
+        --packVersion ${{ env.REL_VER }} --packDir "${{ github.workspace }}\publish" --packAuthors Wanhua --packTitle VEI单机版_${{ matrix.environment }}
         -e ${{ env.Project_Name }}.exe
     
     - name: Upload Package
       run: >
-        vpk upload s3 -o "${{github.workspace}}\release\${{ matrix.rid }}\${{ matrix.environment}}" --keyId ${{secrets.CLOUD_KEY}} --secret ${{secrets.CLOUD_SECRET}}
+        vpk upload s3 -o "${{github.workspace}}\release" --keyId ${{secrets.CLOUD_KEY}} --secret ${{secrets.CLOUD_SECRET}}
         --endpoint https://cos.ap-chengdu.myqcloud.com --bucket common-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
         --disablePathStyle
