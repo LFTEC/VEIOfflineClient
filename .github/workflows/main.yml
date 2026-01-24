@@ -77,8 +77,9 @@ jobs:
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     env:
-      Solution_Name: VEIOfflineClient                         # Replace with your solution name, i.e. MyWpfApp.sln.
+      Solution_Name: VEIOfflineClient.slnx                         # Replace with your solution name, i.e. MyWpfApp.sln.
       UI_Project_Path: VEIOfflineClient\VEIOfflineClient.csproj    # Replace with the Wap project directory relative to the solution, i.e. MyWpfApp.Package.
+      Project_Name: VEIOfflineClient                             # Replace with your project name, i.e. MyWpfApp.
       DX_KEY: ${{ secrets.DEVEXPRESS_LICENSE_KEY }}
     steps:
     - name: Checkout
@@ -137,7 +138,7 @@ jobs:
     
     - name: Create Package
       run: >
-        vpk pack -o "${{github.workspace}}\release\${{ matrix.rid }}\${{ matrix.environment}}" --runtime ${{ matrix.rid }} --packId ${{ env.Solution_Name }}_${{ matrix.environment }}
+        vpk pack -o "${{github.workspace}}\release\${{ matrix.rid }}\${{ matrix.environment}}" --runtime ${{ matrix.rid }} --packId ${{ env.Project_Name }}_${{ matrix.environment }}
         --packVersion ${{ env.REL_VER }} --packDir "${{ github.workspace }}\publish\Release\${{ matrix.rid }}" --packAuthors Wanhua --packTitle VEI单机版${{ matrix.environment }}
     
     - name: Upload Package
