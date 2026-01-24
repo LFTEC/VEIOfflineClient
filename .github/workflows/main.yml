@@ -1,0 +1,138 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# This workflow will build, test, sign and package a WPF or Windows Forms desktop application
+# built on .NET Core.
+# To learn how to migrate your existing application to .NET Core,
+# refer to https://docs.microsoft.com/en-us/dotnet/desktop-wpf/migration/convert-project-from-net-framework
+#
+# To configure this workflow:
+#
+# 1. Configure environment variables
+# GitHub sets default environment variables for every workflow run.
+# Replace the variables relative to your project in the "env" section below.
+#
+# 2. Signing
+# Generate a signing certificate in the Windows Application
+# Packaging Project or add an existing signing certificate to the project.
+# Next, use PowerShell to encode the .pfx file using Base64 encoding
+# by running the following Powershell script to generate the output string:
+#
+# $pfx_cert = Get-Content '.\SigningCertificate.pfx' -Encoding Byte
+# [System.Convert]::ToBase64String($pfx_cert) | Out-File 'SigningCertificate_Encoded.txt'
+#
+# Open the output file, SigningCertificate_Encoded.txt, and copy the
+# string inside. Then, add the string to the repo as a GitHub secret
+# and name it "Base64_Encoded_Pfx."
+# For more information on how to configure your signing certificate for
+# this workflow, refer to https://github.com/microsoft/github-actions-for-desktop-apps#signing
+#
+# Finally, add the signing certificate password to the repo as a secret and name it "Pfx_Key".
+# See "Build the Windows Application Packaging project" below to see how the secret is used.
+#
+# For more information on GitHub Actions, refer to https://github.com/features/actions
+# For a complete CI/CD sample to get started with GitHub Action workflows for Desktop Applications,
+# refer to https://github.com/microsoft/github-actions-for-desktop-apps
+
+name: .NET Core Desktop
+
+on:
+  push:
+    branches: [ "master" ]
+    tags: [ '*.*.*' ]
+
+jobs:
+  create-tag:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.create_tag.outputs.new_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Bump version and create tag
+        id: create_tag
+        uses: anothrNick/github-tag-action@v1.75.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: ''
+          default_bump: patch
+  build:
+    if: |
+      needs.create-tag.result == 'success' || startsWith(github.ref, 'refs/tags/') 
+    needs: [create-tag]
+    strategy:
+      matrix:
+        rid: [win-x64, win-x86]  # Add other RIDs as needed. Refer to
+                                    # https://docs.microsoft.com/en-us/dotnet/core/rid-catalog for a list of RIDs.
+        environment: [PRE, RELEASE]  # Define environments if needed.
+
+    runs-on: windows-latest  # For a list of available runner types, refer to
+                             # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+
+    env:
+      Solution_Name: VEIOfflineClient                         # Replace with your solution name, i.e. MyWpfApp.sln.
+      UI_Project_Path: VEIOfflineClient\VEIOfflineClient.csproj    # Replace with the Wap project directory relative to the solution, i.e. MyWpfApp.Package.
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    
+    - name: Install Velopack CLI
+      run: dotnet tool install -g vpk
+
+    - name: Set Version Env
+      shell: bash
+      run: |
+        if [ "${{ github.ref_type }}" == "tag" ]; then
+          echo "REL_VER=${{ github.ref_name }}" >> $GITHUB_ENV
+        elif [ -n "${{ needs.create-tag.outputs.new_tag }}" ]; then
+          echo "REL_VER=${{needs.create-tag.outputs.new_tag}}" >> $GITHUB_ENV
+        else
+          echo "错误：无法获取有效的版本号。" >&2
+          exit 1
+        fi
+    # Remove the pfx
+    - name: Publish
+      run: >
+        dotnet publish ${{ env.UI_Project_Path }} -c Release -r ${{ matrix.rid }} 
+        -f net8.0-windows --self-contained -p:PublishReadyToRun=true 
+        -o "${{ github.workspace }}\publish\Release\${{ matrix.rid }}" -p:Version=${{ env.REL_VER }}
+    
+    - name: Update appSettings.json
+      shell: pwsh
+      run: |
+        $path = "${{ github.workspace }}\publish\Release\${{ matrix.rid }}\appsettings.json"
+        $json = Get-Content $path | ConvertFrom-Json
+
+        $json.Environment.Stage = "${{ matrix.environment }}"
+        $json | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding UTF8
+
+    - name: Download Remote Package
+      run: >
+        vpk download s3 -o "${{github.workspace}}\release\${{ matrix.rid }}\${{ matrix.environment}}" --keyId ${{secrets.CLOUD_KEY}} --secret ${{secrets.CLOUD_SECRET}} 
+        --endpoint https://cos.ap-chengdu.myqcloud.com --bucket common-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
+        --disablePathStyle
+
+    
+    - name: Create Package
+      run: >
+        vpk pack -o "${{github.workspace}}\release\${{ matrix.rid }}\${{ matrix.environment}}" --runtime ${{ matrix.rid }} --packId ${{ env.Solution_Name }}_${{ matrix.environment }}
+        --packVersion ${{ env.REL_VER }} --packDir "${{ github.workspace }}\publish\Release\${{ matrix.rid }}" --packAuthors Wanhua --packTitle VEI单机版${{ matrix.environment }}
+    
+    - name: Upload Package
+      run: >
+        vpk upload s3 -o "${{github.workspace}}\release\${{ matrix.rid }}\${{ matrix.environment}}" --keyId ${{secrets.CLOUD_KEY}} --secret ${{secrets.CLOUD_SECRET}}
+        --endpoint https://cos.ap-chengdu.myqcloud.com --bucket common-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
+        --disablePathStyle
