@@ -167,6 +167,11 @@ jobs:
     - name: Create Deployment Tag
       run: echo "Deployed version ${{ env.REL_VER }}"
 
+    - name: Setup S3 SecretKey
+      run: |
+        aws configure set aws_access_key_id ${{secrets.CLOUD_KEY}}
+        aws configure set aws_secret_access_key ${{secrets.CLOUD_SECRET}}
+
     - name: Install Velopack CLI
       run: dotnet tool install -g vpk
     - name: Download Build Artifact
@@ -195,4 +200,5 @@ jobs:
         --endpoint https://cos.ap-tokyo.myqcloud.com --bucket vei-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
         --disablePathStyle
     - name: Update update.json to S3
-      uses: jakejarvis/s3-sync-action@v0.6.0
+      run: |
+        aws s3 cp "publish/version.json" s3://vei-1252567852/vei/offline/${{ matrix.rid }}/${{ matrix.environment }}/version.json --endpoint-url https://cos.ap-tokyo.myqcloud.com --acl public-read
