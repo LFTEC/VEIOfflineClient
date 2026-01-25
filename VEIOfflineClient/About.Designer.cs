@@ -99,6 +99,8 @@
             pictureEdit1.Location = new Point(5, 5);
             pictureEdit1.Margin = new Padding(3, 2, 3, 2);
             pictureEdit1.Name = "pictureEdit1";
+            pictureEdit1.Properties.Appearance.BackColor = Color.Transparent;
+            pictureEdit1.Properties.Appearance.Options.UseBackColor = true;
             pictureEdit1.Properties.BorderStyle = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
             pictureEdit1.Properties.PictureStoreMode = DevExpress.XtraEditors.Controls.PictureStoreMode.ByteArray;
             pictureEdit1.Properties.ShowCameraMenuItem = DevExpress.XtraEditors.Controls.CameraMenuItemVisibility.Auto;
