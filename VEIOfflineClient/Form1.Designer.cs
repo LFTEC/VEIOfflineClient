@@ -3804,6 +3804,7 @@
             barButtonItem4.Id = 356;
             barButtonItem4.ImageOptions.SvgImage = (DevExpress.Utils.Svg.SvgImage)resources.GetObject("barButtonItem4.ImageOptions.SvgImage");
             barButtonItem4.Name = "barButtonItem4";
+            barButtonItem4.ItemClick += barButtonItem4_ItemClick;
             // 
             // tableToolsRibbonPageCategory1
             // 
@@ -4302,7 +4303,6 @@
             Controls.Add(spreadsheetFormulaBarPanel);
             Controls.Add(ribbonControl1);
             Controls.Add(ribbonStatusBar1);
-            Font = new Font("微软雅黑", 9F);
             IconOptions.Icon = (Icon)resources.GetObject("Form1.IconOptions.Icon");
             Margin = new Padding(4, 5, 4, 5);
             Name = "Form1";

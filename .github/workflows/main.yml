@@ -132,7 +132,7 @@ jobs:
         $json = Get-Content $path | ConvertFrom-Json
 
         $json.Environment.Stage = "${{ env.REL_ENV }}"
-        $json.Environment.UpdatePath = "https://oss.jcdev.cc/vei/offline/${{ matrix.rid }}/${{ env.REL_ENV }}"
+        $json.Environment.UpdatePath = "https://oss.jcdev.cc/vei/offline/${{ matrix.rid }}/${{ env.REL_ENV }}/"
         $json | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding UTF8
     - name: Upload Artifact
       uses: actions/upload-artifact@v4

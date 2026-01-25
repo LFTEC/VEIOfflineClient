@@ -59,5 +59,25 @@ namespace VEIOfflineClient.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        /// </summary>
+        internal static System.Drawing.Bitmap Gemini_Generated_Image_8aqt1z8aqt1z8aqt {
+            get {
+                object obj = ResourceManager.GetObject("Gemini_Generated_Image_8aqt1z8aqt1z8aqt", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        /// </summary>
+        internal static System.Drawing.Bitmap question_fill {
+            get {
+                object obj = ResourceManager.GetObject("question-fill", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
