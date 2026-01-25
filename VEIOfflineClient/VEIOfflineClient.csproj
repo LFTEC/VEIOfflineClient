@@ -8,11 +8,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
     <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
-    <ApplicationIcon>Gemini_Generated_Image_8aqt1z8aqt1z8aqt.ico</ApplicationIcon>
+    <ApplicationIcon>10872bec-e4d8-4e66-ad4f-854b3e69b300.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Gemini_Generated_Image_8aqt1z8aqt1z8aqt.ico" />
+    <Content Include="10872bec-e4d8-4e66-ad4f-854b3e69b300.ico" />
   </ItemGroup>
 
   <ItemGroup>

@@ -3309,7 +3309,7 @@
             commandBarGalleryDropDown26.Gallery.ColumnCount = 7;
             commandBarGalleryDropDown26.Gallery.DrawImageBackground = false;
             commandBarGalleryDropDown26.Gallery.ItemAutoSizeMode = DevExpress.XtraBars.Ribbon.Gallery.GalleryItemAutoSizeMode.None;
-            commandBarGalleryDropDown26.Gallery.ItemSize = new Size(99, 72);
+            commandBarGalleryDropDown26.Gallery.ItemSize = new Size(99, 59);
             commandBarGalleryDropDown26.Gallery.RowCount = 10;
             commandBarGalleryDropDown26.Name = "commandBarGalleryDropDown26";
             commandBarGalleryDropDown26.Ribbon = ribbonControl1;
@@ -3954,7 +3954,7 @@
             spreadsheetFormulaBar.AccessibleName = "Formula bar";
             spreadsheetFormulaBar.Dock = DockStyle.Top;
             spreadsheetFormulaBar.Location = new Point(0, 0);
-            spreadsheetFormulaBar.Margin = new Padding(5, 33, 5, 33);
+            spreadsheetFormulaBar.Margin = new Padding(5, 40, 5, 40);
             spreadsheetFormulaBar.MinimumSize = new Size(0, 24);
             spreadsheetFormulaBar.Name = "spreadsheetFormulaBar";
             spreadsheetFormulaBar.Size = new Size(1283, 24);
@@ -4303,6 +4303,7 @@
             Controls.Add(spreadsheetFormulaBarPanel);
             Controls.Add(ribbonControl1);
             Controls.Add(ribbonStatusBar1);
+            Font = new Font("微软雅黑", 9F);
             IconOptions.Icon = (Icon)resources.GetObject("Form1.IconOptions.Icon");
             Margin = new Padding(4, 5, 4, 5);
             Name = "Form1";

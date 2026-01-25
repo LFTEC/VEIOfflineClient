@@ -95,13 +95,14 @@
             // 
             // pictureEdit1
             // 
-            pictureEdit1.EditValue = Properties.Resources.Gemini_Generated_Image_8aqt1z8aqt1z8aqt;
+            pictureEdit1.EditValue = Properties.Resources._10872bec_e4d8_4e66_ad4f_854b3e69b300;
             pictureEdit1.Location = new Point(5, 5);
             pictureEdit1.Margin = new Padding(3, 2, 3, 2);
             pictureEdit1.Name = "pictureEdit1";
             pictureEdit1.Properties.BorderStyle = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
+            pictureEdit1.Properties.PictureStoreMode = DevExpress.XtraEditors.Controls.PictureStoreMode.ByteArray;
             pictureEdit1.Properties.ShowCameraMenuItem = DevExpress.XtraEditors.Controls.CameraMenuItemVisibility.Auto;
-            pictureEdit1.Properties.SizeMode = DevExpress.XtraEditors.Controls.PictureSizeMode.Stretch;
+            pictureEdit1.Properties.SizeMode = DevExpress.XtraEditors.Controls.PictureSizeMode.Zoom;
             pictureEdit1.Size = new Size(62, 63);
             pictureEdit1.TabIndex = 0;
             // 

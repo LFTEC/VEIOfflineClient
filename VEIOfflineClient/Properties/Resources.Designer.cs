@@ -63,6 +63,16 @@ namespace VEIOfflineClient.Properties {
         /// <summary>
         ///   查找 System.Drawing.Bitmap 类型的本地化资源。
         /// </summary>
+        internal static System.Drawing.Bitmap _10872bec_e4d8_4e66_ad4f_854b3e69b300 {
+            get {
+                object obj = ResourceManager.GetObject("10872bec-e4d8-4e66-ad4f-854b3e69b300", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        /// </summary>
         internal static System.Drawing.Bitmap Gemini_Generated_Image_8aqt1z8aqt1z8aqt {
             get {
                 object obj = ResourceManager.GetObject("Gemini_Generated_Image_8aqt1z8aqt1z8aqt", resourceCulture);
