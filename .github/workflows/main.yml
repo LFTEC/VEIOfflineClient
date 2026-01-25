@@ -196,7 +196,7 @@ jobs:
     - name: Create Package
       run: >
         vpk pack -o "${{github.workspace}}\release" --runtime ${{ matrix.rid }} --packId ${{ env.Project_Name }}_${{ env.REL_ENV }}
-        --packVersion ${{ env.REL_VER }} --packDir "${{ github.workspace }}\publish" --packAuthors Wanhua --packTitle VEI单机版_${{ env.REL_ENV }}
+        --packVersion ${{ env.REL_VER }} --packDir "${{ github.workspace }}\publish" --packAuthors Wanhua --packTitle VEI单机版(${{ env.REL_ENV == 'RELEASE' && '正式版' || '测试版' }})
         -e ${{ env.Project_Name }}.exe
     
     - name: Upload Package
