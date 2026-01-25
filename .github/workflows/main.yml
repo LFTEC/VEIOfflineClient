@@ -118,7 +118,7 @@ jobs:
     - name: Publish
       run: >
         dotnet publish ${{ env.UI_Project_Path }} -c Release -r ${{ matrix.rid }} 
-        -f net8.0-windows --self-contained -p:PublishReadyToRun=true 
+        -f net8.0-windows --self-contained -p:PublishReadyToRun=false 
         -o "${{ github.workspace }}\publish" -p:Version=${{ env.REL_VER }}
     
     - name: Update appSettings.json
@@ -171,6 +171,7 @@ jobs:
       run: |
         aws configure set aws_access_key_id ${{secrets.CLOUD_KEY}}
         aws configure set aws_secret_access_key ${{secrets.CLOUD_SECRET}}
+        aws configure set addressing_style virtual
 
     - name: Install Velopack CLI
       run: dotnet tool install -g vpk
@@ -201,4 +202,4 @@ jobs:
         --disablePathStyle
     - name: Update update.json to S3
       run: |
-        aws s3 cp "publish/version.json" s3://vei-1252567852/vei/offline/${{ matrix.rid }}/${{ matrix.environment }}/version.json --endpoint-url https://cos.ap-tokyo.myqcloud.com --acl public-read
+        aws s3 cp "publish/version.json" s3://vei/offline/${{ matrix.rid }}/${{ matrix.environment }}/version.json --endpoint-url https://vei-1252567852.cos.ap-tokyo.myqcloud.com --acl public-read
