@@ -74,7 +74,6 @@
             FormBorderStyle = FormBorderStyle.None;
             Name = "Start";
             ShowIcon = false;
-            ShowInTaskbar = false;
             SizeGripStyle = SizeGripStyle.Hide;
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Start";

@@ -4,10 +4,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Velopack;
 
@@ -21,6 +23,28 @@ namespace VEIOfflineClient
         [STAThread]
         static void Main(string[] args)
         {
+            using(Mutex mutex = new Mutex(true, "5EE08AB0-7D3D-48BF-AC88-B7E03B98E651", out bool createdNew))
+            {
+                if(!createdNew)
+                {
+                    Process current = Process.GetCurrentProcess();
+
+                    foreach (var process in Process.GetProcessesByName(current.ProcessName))
+                    {
+                        if (process.Id != current.Id)
+                        {
+                            var handle = process.MainWindowHandle;
+                            if(handle != IntPtr.Zero)
+                            {
+                                NativeMethods.ShowWindowAsync(handle, 9);
+                                NativeMethods.SetForegroundWindow(handle);
+                            }
+                        }
+                    }
+                    return;
+                }
+
+            }
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             VelopackApp.Build().Run();
@@ -196,6 +220,13 @@ namespace VEIOfflineClient
     internal record VersionInfo(string minVersion, string latestVersion);
 
 
+    internal class NativeMethods
+    {
+        [DllImport("user32.dll")]
+        internal static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 
+        [DllImport("user32.dll")]
+        internal static extern bool SetForegroundWindow(IntPtr hWnd);
+    }
 
 }
