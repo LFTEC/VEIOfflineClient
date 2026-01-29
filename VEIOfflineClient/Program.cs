@@ -24,8 +24,12 @@ namespace VEIOfflineClient
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             VelopackApp.Build().Run();
-
+          
             ApplicationConfiguration.Initialize();
+            Start startForm = new Start();
+            startForm.Show();
+            Application.DoEvents();
+
             string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VEIOfflineClient");
             string configFile = Path.Combine(appDataPath, "config.json");
             if(!File.Exists(configFile))
@@ -147,7 +151,11 @@ namespace VEIOfflineClient
             using var serviceScope = host.Services.CreateScope();
             var mainForm = serviceScope.ServiceProvider.GetRequiredService<Form1>();
 
-            
+            mainForm.Load += (s,e)=>
+            {
+                startForm.Close();
+                startForm.Dispose();
+            };
 
             host.Start();
             Application.Run(mainForm);
