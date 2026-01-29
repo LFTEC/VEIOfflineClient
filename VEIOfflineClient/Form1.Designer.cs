@@ -3954,7 +3954,7 @@
             spreadsheetFormulaBar.AccessibleName = "Formula bar";
             spreadsheetFormulaBar.Dock = DockStyle.Top;
             spreadsheetFormulaBar.Location = new Point(0, 0);
-            spreadsheetFormulaBar.Margin = new Padding(5, 49, 5, 49);
+            spreadsheetFormulaBar.Margin = new Padding(5, 131, 5, 131);
             spreadsheetFormulaBar.MinimumSize = new Size(0, 24);
             spreadsheetFormulaBar.Name = "spreadsheetFormulaBar";
             spreadsheetFormulaBar.Size = new Size(1283, 24);
@@ -4310,6 +4310,7 @@
             Ribbon = ribbonControl1;
             StatusBar = ribbonStatusBar1;
             Text = "VEI单机版库存维护系统";
+            WindowState = FormWindowState.Maximized;
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)repositoryItemProgressBar1).EndInit();
             spreadsheetFormulaBarPanel.ResumeLayout(false);

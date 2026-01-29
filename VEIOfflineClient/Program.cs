@@ -23,28 +23,31 @@ namespace VEIOfflineClient
         [STAThread]
         static void Main(string[] args)
         {
-            using(Mutex mutex = new Mutex(true, "5EE08AB0-7D3D-48BF-AC88-B7E03B98E651", out bool createdNew))
+            using Mutex mutex = new Mutex(true, "Global\\5EE08AB0-7D3D-48BF-AC88-B7E03B98E651", out bool createdNew);
+            if(!createdNew)
             {
-                if(!createdNew)
-                {
-                    Process current = Process.GetCurrentProcess();
+                Process current = Process.GetCurrentProcess();
 
-                    foreach (var process in Process.GetProcessesByName(current.ProcessName))
+                foreach (var process in Process.GetProcessesByName(current.ProcessName))
+                {
+                    if (process.Id != current.Id)
                     {
-                        if (process.Id != current.Id)
+                        var handle = process.MainWindowHandle;
+                        if(handle != IntPtr.Zero)
                         {
-                            var handle = process.MainWindowHandle;
-                            if(handle != IntPtr.Zero)
+                            if (NativeMethods.IsIconic(handle))
                             {
                                 NativeMethods.ShowWindowAsync(handle, 9);
-                                NativeMethods.SetForegroundWindow(handle);
                             }
+                            else
+                                NativeMethods.ShowWindowAsync(handle, 5);
+                            NativeMethods.SetForegroundWindow(handle);
                         }
                     }
-                    return;
                 }
-
+                return;
             }
+
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             VelopackApp.Build().Run();
@@ -227,6 +230,10 @@ namespace VEIOfflineClient
 
         [DllImport("user32.dll")]
         internal static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool IsIconic(IntPtr hWnd);
     }
 
 }
