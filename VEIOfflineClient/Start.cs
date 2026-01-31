@@ -16,5 +16,15 @@ namespace VEIOfflineClient
         {
             InitializeComponent();
         }
+
+        public void AddVersion(string? version)
+        {   
+            if(version == null)
+            {
+                return;
+            }
+            label2.Text = string.Join(label2.Text, version);
+            Application.DoEvents(); 
+        }
     }
 }

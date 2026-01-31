@@ -190,6 +190,7 @@
             Margin = new Padding(3, 2, 3, 2);
             MaximizeBox = false;
             Name = "About";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "关于";
             Load += About_Load;
             ((System.ComponentModel.ISupportInitialize)panelControl1).EndInit();
