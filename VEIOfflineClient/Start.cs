@@ -23,7 +23,7 @@ namespace VEIOfflineClient
             {
                 return;
             }
-            label2.Text = string.Join(label2.Text, version);
+            label2.Text += version;
             Application.DoEvents(); 
         }
     }
