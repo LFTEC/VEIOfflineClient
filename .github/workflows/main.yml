@@ -41,48 +41,52 @@ name: Build and Package Project
 
 on:
   push:
-    branches: [ "master" ]
-    tags: [ '*.*.*' ]
+    tags: [ '*' ]
 
 jobs:
-  create-tag:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    outputs:
-      new_tag: ${{ steps.create_tag.outputs.new_tag }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Bump version and create tag
-        id: create_tag
-        uses: anothrNick/github-tag-action@1.65.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_PREFIX: ''
-          DEFAULT_BUMP: patch
+  # create-tag:
+  #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   outputs:
+  #     new_tag: ${{ steps.create_tag.outputs.new_tag }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Bump version and create tag
+  #       id: create_tag
+  #       uses: anothrNick/github-tag-action@1.65.0
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         TAG_PREFIX: ''
+  #         DEFAULT_BUMP: patch
   get_version:
-    if: always() && ( needs.create-tag.result == 'success' || startsWith(github.ref, 'refs/tags/') )
-    needs: [create-tag]
+    # if: always() && ( needs.create-tag.result == 'success' || startsWith(github.ref, 'refs/tags/') )
+    # needs: [create-tag]
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.set_versions.outputs.REL_VER }}
+      rel_ver: ${{ steps.set_versions.outputs.REL_VER }}
+      rel_env: ${{ steps.set_versions.outputs.REL_ENV }}
     steps:
     - name: Set Version Env
       id: set_versions
       shell: bash
       run: |
-        if [ "${{ github.ref_type }}" == "tag" ]; then
-          VERSION="${{ github.ref_name }}"
-        elif [ -n "${{ needs.create-tag.outputs.new_tag }}" ]; then
-          VERSION="${{ needs.create-tag.outputs.new_tag }}"
+        VERSION=${{github.ref_name}}
+        if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[a-zA-Z0-9]+\.[0-9]+$ ]]; then
+          echo "Detected prerelease version: $VERSION"
+          ENVIRONMENT="PRE"
+        elif [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Detected release version: $VERSION"
+          ENVIRONMENT="RELEASE"
         else
-          echo "错误：无法获取有效的版本号。" >&2
+          echo "ERROR: Not a valid version format." >&2
           exit 1
         fi
         echo "REL_VER=$VERSION" >> $GITHUB_OUTPUT
+        echo "REL_ENV=$ENVIRONMENT" >> $GITHUB_OUTPUT
   build:
     if: |
       needs.get_version.result == 'success'
@@ -91,7 +95,6 @@ jobs:
       matrix:
         rid: [win-x64, win-x86]  # Add other RIDs as needed. Refer to
                                     # https://docs.microsoft.com/en-us/dotnet/core/rid-catalog for a list of RIDs.
-        environment: [PRE, RELEASE]  # Define environments if needed.
 
     runs-on: windows-latest  # For a list of available runner types, refer to
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -100,7 +103,8 @@ jobs:
       Solution_Name: VEIOfflineClient.slnx                         # Replace with your solution name, i.e. MyWpfApp.sln.
       UI_Project_Path: VEIOfflineClient\VEIOfflineClient.csproj    # Replace with the Wap project directory relative to the solution, i.e. MyWpfApp.Package.
       DevExpress_License: ${{ secrets.DEVEXPRESS_LICENSE_KEY }}
-      REL_VER: ${{ needs.get_version.outputs.version }}
+      REL_VER: ${{ needs.get_version.outputs.rel_ver }}
+      REL_ENV: ${{ needs.get_version.outputs.rel_env }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -118,7 +122,7 @@ jobs:
     - name: Publish
       run: >
         dotnet publish ${{ env.UI_Project_Path }} -c Release -r ${{ matrix.rid }} 
-        -f net8.0-windows --self-contained -p:PublishReadyToRun=false 
+        -f net8.0-windows --self-contained -p:PublishReadyToRun=${{ env.REL_ENV == 'RELEASE' && 'true' || 'false' }}
         -o "${{ github.workspace }}\publish" -p:Version=${{ env.REL_VER }}
     
     - name: Update appSettings.json
@@ -127,13 +131,13 @@ jobs:
         $path = "${{ github.workspace }}\publish\appsettings.json"
         $json = Get-Content $path | ConvertFrom-Json
 
-        $json.Environment.Stage = "${{ matrix.environment }}"
-        $json.Environment.UpdatePath = "https://oss.jcdev.cc/vei/offline/${{ matrix.rid }}/${{ matrix.environment }}"
+        $json.Environment.Stage = "${{ env.REL_ENV }}"
+        $json.Environment.UpdatePath = "https://oss.jcdev.cc/vei/offline/${{ matrix.rid }}/${{ env.REL_ENV }}/"
         $json | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding UTF8
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.rid }}-${{ matrix.environment }}-build
+        name: ${{ matrix.rid }}-build
         path: ${{ github.workspace }}/publish
 
   deploy:
@@ -142,17 +146,17 @@ jobs:
     needs: [build, get_version]
     runs-on: windows-latest
     concurrency:
-      group: 'deploy-${{ matrix.rid }}-${{ matrix.environment }}'
+      group: 'deploy-${{ matrix.rid }}-${{ needs.get_version.outputs.rel_env }}'
       cancel-in-progress: false
     strategy:
       max-parallel: 1
       matrix:
         rid: [win-x64, win-x86]  # Add other RIDs as needed. Refer to
                                     # https://docs.microsoft.com/en-us/dotnet/core/rid-catalog for a list of RIDs.
-        environment: [PRE, RELEASE]  # Define environments if needed.
     env:
       Project_Name: VEIOfflineClient                             # Replace with your project name, i.e. MyWpfApp.
-      REL_VER: ${{ needs.get_version.outputs.version }}
+      REL_VER: ${{ needs.get_version.outputs.rel_ver }}
+      REL_ENV: ${{ needs.get_version.outputs.rel_env }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -178,28 +182,28 @@ jobs:
     - name: Download Build Artifact
       uses: actions/download-artifact@v4
       with:
-        name: ${{ matrix.rid }}-${{ matrix.environment }}-build
+        name: ${{ matrix.rid }}-build
         path: ${{ github.workspace }}/publish
 
     - name: Download Remote Package
       continue-on-error: true
       run: >
         vpk download s3 -o "${{github.workspace}}\release" --keyId ${{secrets.CLOUD_KEY}} --secret ${{secrets.CLOUD_SECRET}} 
-        --endpoint https://cos.ap-tokyo.myqcloud.com --bucket vei-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
+        --endpoint https://cos.ap-tokyo.myqcloud.com --bucket vei-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ env.REL_ENV }}
         --disablePathStyle
 
     
     - name: Create Package
       run: >
-        vpk pack -o "${{github.workspace}}\release" --runtime ${{ matrix.rid }} --packId ${{ env.Project_Name }}_${{ matrix.environment }}
-        --packVersion ${{ env.REL_VER }} --packDir "${{ github.workspace }}\publish" --packAuthors Wanhua --packTitle VEI单机版_${{ matrix.environment }}
+        vpk pack -o "${{github.workspace}}\release" --runtime ${{ matrix.rid }} --packId ${{ env.Project_Name }}_${{ env.REL_ENV }}
+        --packVersion ${{ env.REL_VER }} --packDir "${{ github.workspace }}\publish" --packAuthors "万华物装" --packTitle "VEI单机版(${{ env.REL_ENV == 'RELEASE' && '正式版' || '测试版' }})"
         -e ${{ env.Project_Name }}.exe
     
     - name: Upload Package
       run: >
         vpk upload s3 -o "${{github.workspace}}\release" --keyId ${{secrets.CLOUD_KEY}} --secret ${{secrets.CLOUD_SECRET}}
-        --endpoint https://cos.ap-tokyo.myqcloud.com --bucket vei-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ matrix.environment}}
+        --endpoint https://cos.ap-tokyo.myqcloud.com --bucket vei-1252567852 --prefix vei/offline/${{ matrix.rid }}/${{ env.REL_ENV }}
         --disablePathStyle
     - name: Update update.json to S3
       run: |
-        aws s3 cp "publish/version.json" s3://vei/offline/${{ matrix.rid }}/${{ matrix.environment }}/version.json --endpoint-url https://vei-1252567852.cos.ap-tokyo.myqcloud.com --acl public-read
+        aws s3 cp "publish/version.json" s3://vei/offline/${{ matrix.rid }}/${{ env.REL_ENV }}/version.json --endpoint-url https://vei-1252567852.cos.ap-tokyo.myqcloud.com --acl public-read

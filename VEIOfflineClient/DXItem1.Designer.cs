@@ -28,9 +28,9 @@
             layoutControl1 = new DevExpress.XtraLayout.LayoutControl();
             labelControl1 = new DevExpress.XtraEditors.LabelControl();
             textEdit1 = new DevExpress.XtraEditors.TextEdit();
-            textEdit2 = new DevExpress.XtraEditors.TextEdit();
             simpleButton1 = new DevExpress.XtraEditors.SimpleButton();
             simpleButton2 = new DevExpress.XtraEditors.SimpleButton();
+            textEdit2 = new DevExpress.XtraEditors.MemoEdit();
             Root = new DevExpress.XtraLayout.LayoutControlGroup();
             layoutControlItem1 = new DevExpress.XtraLayout.LayoutControlItem();
             emptySpaceItem1 = new DevExpress.XtraLayout.EmptySpaceItem();
@@ -38,7 +38,6 @@
             layoutControlItem2 = new DevExpress.XtraLayout.LayoutControlItem();
             layoutControlItem4 = new DevExpress.XtraLayout.LayoutControlItem();
             emptySpaceItem5 = new DevExpress.XtraLayout.EmptySpaceItem();
-            emptySpaceItem6 = new DevExpress.XtraLayout.EmptySpaceItem();
             layoutControlItem5 = new DevExpress.XtraLayout.LayoutControlItem();
             ((System.ComponentModel.ISupportInitialize)layoutControl1).BeginInit();
             layoutControl1.SuspendLayout();
@@ -51,7 +50,6 @@
             ((System.ComponentModel.ISupportInitialize)layoutControlItem2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)layoutControlItem4).BeginInit();
             ((System.ComponentModel.ISupportInitialize)emptySpaceItem5).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)emptySpaceItem6).BeginInit();
             ((System.ComponentModel.ISupportInitialize)layoutControlItem5).BeginInit();
             SuspendLayout();
             // 
@@ -59,16 +57,16 @@
             // 
             layoutControl1.Controls.Add(labelControl1);
             layoutControl1.Controls.Add(textEdit1);
-            layoutControl1.Controls.Add(textEdit2);
             layoutControl1.Controls.Add(simpleButton1);
             layoutControl1.Controls.Add(simpleButton2);
+            layoutControl1.Controls.Add(textEdit2);
             layoutControl1.Dock = DockStyle.Fill;
             layoutControl1.Location = new Point(0, 0);
             layoutControl1.Margin = new Padding(3, 4, 3, 4);
             layoutControl1.Name = "layoutControl1";
             layoutControl1.OptionsCustomizationForm.DesignTimeCustomizationFormPositionAndSize = new Rectangle(851, 221, 650, 400);
             layoutControl1.Root = Root;
-            layoutControl1.Size = new Size(483, 226);
+            layoutControl1.Size = new Size(483, 236);
             layoutControl1.TabIndex = 0;
             layoutControl1.Text = "layoutControl1";
             // 
@@ -78,7 +76,7 @@
             labelControl1.Appearance.Options.UseForeColor = true;
             labelControl1.AutoSizeMode = DevExpress.XtraEditors.LabelAutoSizeMode.Vertical;
             labelControl1.LineColor = Color.Black;
-            labelControl1.Location = new Point(12, 116);
+            labelControl1.Location = new Point(12, 158);
             labelControl1.Margin = new Padding(3, 4, 3, 4);
             labelControl1.Name = "labelControl1";
             labelControl1.Padding = new Padding(0, 6, 0, 0);
@@ -89,7 +87,7 @@
             // 
             // textEdit1
             // 
-            textEdit1.Location = new Point(12, 40);
+            textEdit1.Location = new Point(12, 38);
             textEdit1.Margin = new Padding(3, 4, 3, 4);
             textEdit1.MinimumSize = new Size(400, 0);
             textEdit1.Name = "textEdit1";
@@ -98,18 +96,9 @@
             textEdit1.StyleController = layoutControl1;
             textEdit1.TabIndex = 0;
             // 
-            // textEdit2
-            // 
-            textEdit2.Location = new Point(12, 88);
-            textEdit2.Margin = new Padding(3, 4, 3, 4);
-            textEdit2.Name = "textEdit2";
-            textEdit2.Size = new Size(459, 24);
-            textEdit2.StyleController = layoutControl1;
-            textEdit2.TabIndex = 2;
-            // 
             // simpleButton1
             // 
-            simpleButton1.Location = new Point(224, 190);
+            simpleButton1.Location = new Point(224, 202);
             simpleButton1.Margin = new Padding(3, 4, 3, 4);
             simpleButton1.Name = "simpleButton1";
             simpleButton1.Size = new Size(121, 22);
@@ -120,7 +109,7 @@
             // 
             // simpleButton2
             // 
-            simpleButton2.Location = new Point(349, 190);
+            simpleButton2.Location = new Point(349, 202);
             simpleButton2.Margin = new Padding(3, 4, 3, 4);
             simpleButton2.Name = "simpleButton2";
             simpleButton2.Size = new Size(122, 22);
@@ -129,13 +118,22 @@
             simpleButton2.Text = "退出程序";
             simpleButton2.Click += simpleButton2_Click;
             // 
+            // textEdit2
+            // 
+            textEdit2.Location = new Point(12, 86);
+            textEdit2.Margin = new Padding(3, 4, 3, 4);
+            textEdit2.Name = "textEdit2";
+            textEdit2.Size = new Size(459, 68);
+            textEdit2.StyleController = layoutControl1;
+            textEdit2.TabIndex = 2;
+            // 
             // Root
             // 
             Root.EnableIndentsWithoutBorders = DevExpress.Utils.DefaultBoolean.True;
             Root.GroupBordersVisible = false;
-            Root.Items.AddRange(new DevExpress.XtraLayout.BaseLayoutItem[] { layoutControlItem1, emptySpaceItem1, layoutControlItem3, layoutControlItem2, layoutControlItem4, emptySpaceItem5, emptySpaceItem6, layoutControlItem5 });
+            Root.Items.AddRange(new DevExpress.XtraLayout.BaseLayoutItem[] { layoutControlItem1, emptySpaceItem1, layoutControlItem3, layoutControlItem2, layoutControlItem4, emptySpaceItem5, layoutControlItem5 });
             Root.Name = "Root";
-            Root.Size = new Size(483, 226);
+            Root.Size = new Size(483, 236);
             Root.TextVisible = false;
             // 
             // layoutControlItem1
@@ -159,7 +157,7 @@
             // layoutControlItem3
             // 
             layoutControlItem3.Control = simpleButton1;
-            layoutControlItem3.Location = new Point(212, 176);
+            layoutControlItem3.Location = new Point(212, 190);
             layoutControlItem3.Name = "layoutControlItem3";
             layoutControlItem3.Size = new Size(125, 26);
             layoutControlItem3.TextVisible = false;
@@ -169,7 +167,7 @@
             layoutControlItem2.Control = textEdit2;
             layoutControlItem2.Location = new Point(0, 54);
             layoutControlItem2.Name = "layoutControlItem2";
-            layoutControlItem2.Size = new Size(463, 48);
+            layoutControlItem2.Size = new Size(463, 92);
             layoutControlItem2.Text = "激活码";
             layoutControlItem2.TextLocation = DevExpress.Utils.Locations.Top;
             layoutControlItem2.TextSize = new Size(36, 17);
@@ -177,27 +175,21 @@
             // layoutControlItem4
             // 
             layoutControlItem4.Control = simpleButton2;
-            layoutControlItem4.Location = new Point(337, 176);
+            layoutControlItem4.Location = new Point(337, 190);
             layoutControlItem4.Name = "layoutControlItem4";
             layoutControlItem4.Size = new Size(126, 26);
             layoutControlItem4.TextVisible = false;
             // 
             // emptySpaceItem5
             // 
-            emptySpaceItem5.Location = new Point(0, 176);
+            emptySpaceItem5.Location = new Point(0, 190);
             emptySpaceItem5.Name = "emptySpaceItem5";
             emptySpaceItem5.Size = new Size(212, 26);
-            // 
-            // emptySpaceItem6
-            // 
-            emptySpaceItem6.Location = new Point(0, 146);
-            emptySpaceItem6.Name = "emptySpaceItem6";
-            emptySpaceItem6.Size = new Size(463, 30);
             // 
             // layoutControlItem5
             // 
             layoutControlItem5.Control = labelControl1;
-            layoutControlItem5.Location = new Point(0, 102);
+            layoutControlItem5.Location = new Point(0, 146);
             layoutControlItem5.Name = "layoutControlItem5";
             layoutControlItem5.Size = new Size(463, 44);
             layoutControlItem5.TextVisible = false;
@@ -206,11 +198,13 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(483, 226);
+            ClientSize = new Size(483, 236);
             Controls.Add(layoutControl1);
+            Font = new Font("微软雅黑", 9F);
             IconOptions.Icon = (Icon)resources.GetObject("DXItem1.IconOptions.Icon");
             Margin = new Padding(3, 4, 3, 4);
             Name = "DXItem1";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "激活程序";
             FormClosing += DXItem1_FormClosing;
             FormClosed += DXItem1_FormClosed;
@@ -226,7 +220,6 @@
             ((System.ComponentModel.ISupportInitialize)layoutControlItem2).EndInit();
             ((System.ComponentModel.ISupportInitialize)layoutControlItem4).EndInit();
             ((System.ComponentModel.ISupportInitialize)emptySpaceItem5).EndInit();
-            ((System.ComponentModel.ISupportInitialize)emptySpaceItem6).EndInit();
             ((System.ComponentModel.ISupportInitialize)layoutControlItem5).EndInit();
             ResumeLayout(false);
         }
@@ -238,7 +231,6 @@
         private DevExpress.XtraEditors.TextEdit textEdit1;
         private DevExpress.XtraLayout.LayoutControlItem layoutControlItem1;
         private DevExpress.XtraLayout.EmptySpaceItem emptySpaceItem1;
-        private DevExpress.XtraEditors.TextEdit textEdit2;
         private DevExpress.XtraLayout.LayoutControlItem layoutControlItem2;
         private DevExpress.XtraEditors.SimpleButton simpleButton1;
         private DevExpress.XtraEditors.SimpleButton simpleButton2;
@@ -248,5 +240,6 @@
         private DevExpress.XtraLayout.EmptySpaceItem emptySpaceItem6;
         private DevExpress.XtraEditors.LabelControl labelControl1;
         private DevExpress.XtraLayout.LayoutControlItem layoutControlItem5;
+        private DevExpress.XtraEditors.MemoEdit textEdit2;
     }
 }

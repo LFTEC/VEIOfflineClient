@@ -4,10 +4,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Velopack;
 
@@ -15,17 +17,47 @@ namespace VEIOfflineClient
 {
     internal static class Program
     {
+        internal static Mutex? mutex = null;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] args)
         {
+            mutex = new Mutex(true, "Global\\5EE08AB0-7D3D-48BF-AC88-B7E03B98E651", out bool createdNew);
+            if(!createdNew)
+            {
+                Process current = Process.GetCurrentProcess();
+
+                foreach (var process in Process.GetProcessesByName(current.ProcessName))
+                {
+                    if (process.Id != current.Id)
+                    {
+                        var handle = process.MainWindowHandle;
+                        if(handle != IntPtr.Zero)
+                        {
+                            if (NativeMethods.IsIconic(handle))
+                            {
+                                NativeMethods.ShowWindowAsync(handle, 9);
+                            }
+                            else
+                                NativeMethods.ShowWindowAsync(handle, 5);
+                            NativeMethods.SetForegroundWindow(handle);
+                        }
+                    }
+                }
+                return;
+            }
+
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             VelopackApp.Build().Run();
-
+          
             ApplicationConfiguration.Initialize();
+            Start startForm = new Start();
+            startForm.Show();
+            Application.DoEvents();
+
             string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VEIOfflineClient");
             string configFile = Path.Combine(appDataPath, "config.json");
             if(!File.Exists(configFile))
@@ -43,56 +75,14 @@ namespace VEIOfflineClient
             var configuration = builder.Configuration;
             configuration.AddJsonFile(configFile, optional: true, reloadOnChange: true);
 
+            var envSection = configuration.GetSection("Environment");
+            service.Configure<EnvironmentInfo>(envSection);
+            var environmentInfo = envSection.Get<EnvironmentInfo>();
+
             try
             {
-                var envSection = configuration.GetSection("Environment");
-                service.Configure<EnvironmentInfo>(envSection);
-                var environmentInfo = envSection.Get<EnvironmentInfo>();
-
-                var mgr = new UpdateManager(environmentInfo!.UpdatePath);
-                var currentVersion = mgr.CurrentVersion!;
-
-                try
-                {
-                    var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
-                    httpClient.BaseAddress = new Uri(environmentInfo.UpdatePath);
-                    var versionInfo = httpClient.GetFromJsonAsync<VersionInfo>($"version.json").GetAwaiter().GetResult();
-
-                    var minVersion = NuGet.Versioning.NuGetVersion.Parse(versionInfo!.minVersion);
-                    if (currentVersion < minVersion)
-                    {
-                        var splash = new SplashScreen1();
-                        splash.Load += async (s, e) =>
-                        {
-                            try
-                            {
-                                await UpdateVersionHardAsync(environmentInfo.UpdatePath, splash);
-                                splash.Close();
-                            }
-                            catch(Exception ex)
-                            {
-                                XtraMessageBox.Show(ex.ToString(), "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                splash.Close();
-                            }
-                        };
-
-                        splash.ShowDialog();
-                    }
-                    else
-                    {
-                        Task.Run(async () =>
-                        {
-                            await UpdateVersionSoftAsync(environmentInfo.UpdatePath);
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.ToString(), "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-                
-                
+                var version = UpdateProcess(environmentInfo!.UpdatePath);
+                startForm.AddVersion(version);
 
                 var secret = configuration.GetSection("Secret");
                 service.Configure<ActivateInfo>(secret);
@@ -147,12 +137,27 @@ namespace VEIOfflineClient
             using var serviceScope = host.Services.CreateScope();
             var mainForm = serviceScope.ServiceProvider.GetRequiredService<Form1>();
 
-            
+            mainForm.Load += (s,e)=>
+            {
+                startForm.Close();
+                startForm.Dispose();
+            };
 
             host.Start();
-            Application.Run(mainForm);
 
-            host.StopAsync().GetAwaiter().GetResult();
+            try
+            {
+                Application.Run(mainForm);
+            }
+            finally
+            {
+                host.StopAsync().GetAwaiter().GetResult();
+                mutex?.ReleaseMutex();
+                mutex?.Dispose();
+            }
+
+            GC.KeepAlive(mutex);
+
         }
 
         static async Task UpdateVersionHardAsync(string updatePath, SplashScreen1 splash)
@@ -183,11 +188,71 @@ namespace VEIOfflineClient
             await mgr.DownloadUpdatesAsync(newVersion);
 
         }
+
+        static string? UpdateProcess(string updatePath)
+        {
+            var mgr = new UpdateManager(updatePath);
+            var currentVersion = mgr.CurrentVersion;
+            if (currentVersion == null) return null;
+
+            try
+            {
+                var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
+                httpClient.BaseAddress = new Uri(updatePath);
+                var versionInfo = httpClient.GetFromJsonAsync<VersionInfo>($"version.json").GetAwaiter().GetResult();
+
+                var minVersion = NuGet.Versioning.NuGetVersion.Parse(versionInfo!.minVersion);
+                if (currentVersion < minVersion)
+                {
+                    var splash = new SplashScreen1();
+                    splash.Load += async (s, e) =>
+                    {
+                        try
+                        {
+                            await UpdateVersionHardAsync(updatePath, splash);
+                            splash.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            XtraMessageBox.Show(ex.ToString(), "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            splash.Close();
+                        }
+                    };
+
+                    splash.ShowDialog();
+                }
+                else
+                {
+                    Task.Run(async () =>
+                    {
+                        await UpdateVersionSoftAsync(updatePath);
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
+            return currentVersion.ToFullString();
+        }
     }
 
     internal record VersionInfo(string minVersion, string latestVersion);
 
 
+    internal class NativeMethods
+    {
+        [DllImport("user32.dll")]
+        internal static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 
+        [DllImport("user32.dll")]
+        internal static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool IsIconic(IntPtr hWnd);
+    }
 
 }

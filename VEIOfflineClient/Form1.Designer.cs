@@ -3309,7 +3309,7 @@
             commandBarGalleryDropDown26.Gallery.ColumnCount = 7;
             commandBarGalleryDropDown26.Gallery.DrawImageBackground = false;
             commandBarGalleryDropDown26.Gallery.ItemAutoSizeMode = DevExpress.XtraBars.Ribbon.Gallery.GalleryItemAutoSizeMode.None;
-            commandBarGalleryDropDown26.Gallery.ItemSize = new Size(99, 72);
+            commandBarGalleryDropDown26.Gallery.ItemSize = new Size(99, 59);
             commandBarGalleryDropDown26.Gallery.RowCount = 10;
             commandBarGalleryDropDown26.Name = "commandBarGalleryDropDown26";
             commandBarGalleryDropDown26.Ribbon = ribbonControl1;
@@ -3804,6 +3804,7 @@
             barButtonItem4.Id = 356;
             barButtonItem4.ImageOptions.SvgImage = (DevExpress.Utils.Svg.SvgImage)resources.GetObject("barButtonItem4.ImageOptions.SvgImage");
             barButtonItem4.Name = "barButtonItem4";
+            barButtonItem4.ItemClick += barButtonItem4_ItemClick;
             // 
             // tableToolsRibbonPageCategory1
             // 
@@ -3953,7 +3954,7 @@
             spreadsheetFormulaBar.AccessibleName = "Formula bar";
             spreadsheetFormulaBar.Dock = DockStyle.Top;
             spreadsheetFormulaBar.Location = new Point(0, 0);
-            spreadsheetFormulaBar.Margin = new Padding(5, 33, 5, 33);
+            spreadsheetFormulaBar.Margin = new Padding(5, 131, 5, 131);
             spreadsheetFormulaBar.MinimumSize = new Size(0, 24);
             spreadsheetFormulaBar.Name = "spreadsheetFormulaBar";
             spreadsheetFormulaBar.Size = new Size(1283, 24);
@@ -4309,6 +4310,7 @@
             Ribbon = ribbonControl1;
             StatusBar = ribbonStatusBar1;
             Text = "VEI单机版库存维护系统";
+            WindowState = FormWindowState.Maximized;
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)repositoryItemProgressBar1).EndInit();
             spreadsheetFormulaBarPanel.ResumeLayout(false);

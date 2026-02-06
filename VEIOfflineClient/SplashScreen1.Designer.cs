@@ -28,7 +28,6 @@
         /// </summary>
 		private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SplashScreen1));
             labelCopyright = new DevExpress.XtraEditors.LabelControl();
             labelStatus = new DevExpress.XtraEditors.LabelControl();
             peLogo = new DevExpress.XtraEditors.PictureEdit();
@@ -43,9 +42,9 @@
             labelCopyright.Location = new Point(28, 110);
             labelCopyright.Margin = new Padding(4, 3, 4, 3);
             labelCopyright.Name = "labelCopyright";
-            labelCopyright.Size = new Size(57, 17);
+            labelCopyright.Size = new Size(364, 17);
             labelCopyright.TabIndex = 6;
-            labelCopyright.Text = "Copyright";
+            labelCopyright.Text = "Copyright(c) 2025 万华化学集团股份有限公司 All rights reserved.";
             // 
             // labelStatus
             // 
@@ -59,8 +58,8 @@
             // peLogo
             // 
             peLogo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            peLogo.EditValue = resources.GetObject("peLogo.EditValue");
-            peLogo.Location = new Point(313, 93);
+            peLogo.EditValue = VEIOfflineClient.Properties.Resources._10872bec_e4d8_4e66_ad4f_854b3e69b300;
+            peLogo.Location = new Point(400, 93);
             peLogo.Margin = new Padding(4, 3, 4, 3);
             peLogo.Name = "peLogo";
             peLogo.Properties.AllowFocused = false;
@@ -69,7 +68,7 @@
             peLogo.Properties.BorderStyle = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
             peLogo.Properties.ShowMenu = false;
             peLogo.Properties.SizeMode = DevExpress.XtraEditors.Controls.PictureSizeMode.Squeeze;
-            peLogo.Size = new Size(184, 45);
+            peLogo.Size = new Size(97, 45);
             peLogo.TabIndex = 8;
             // 
             // progressBarControl1

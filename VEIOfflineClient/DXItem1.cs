@@ -53,7 +53,15 @@ public partial class DXItem1 : XtraForm
             }
 
             XtraMessageBox.Show(this.Owner, "激活成功！", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            if(Program.mutex != null)
+            {
+                Program.mutex.ReleaseMutex();
+                Program.mutex.Dispose();
+                Program.mutex = null;
+            }
             Application.Restart();
+            Environment.Exit(0);
         }
         else
         {
