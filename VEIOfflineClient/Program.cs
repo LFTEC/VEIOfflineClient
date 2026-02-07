@@ -113,7 +113,7 @@ namespace VEIOfflineClient
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
                 client.DefaultRequestHeaders.Remove("Date");
-                client.DefaultRequestHeaders.Add("X-Ca-Stage", "PRE");
+                client.DefaultRequestHeaders.Add("X-Ca-Stage", environment.Stage);
                 client.DefaultRequestHeaders.Add("X-Ca-Signature-Headers", "X-Ca-Stage");
                 client.DefaultRequestHeaders.Add("x-ca-key", security.AppKey);
                 client.DefaultRequestHeaders.Add("x-ca-signature-method", "HmacSHA256");
