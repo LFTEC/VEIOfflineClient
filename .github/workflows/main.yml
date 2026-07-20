@@ -206,4 +206,7 @@ jobs:
         --disablePathStyle
     - name: Update update.json to S3
       run: |
-        aws s3 cp "publish/version.json" s3://vei/offline/${{ matrix.rid }}/${{ env.REL_ENV }}/version.json --endpoint-url https://vei-1252567852.cos.ap-tokyo.myqcloud.com --acl public-read
+        aws s3 cp "publish/version.json" s3://vei/offline/${{ matrix.rid }}/${{ env.REL_ENV }}/version.json \
+        --endpoint-url https://vei-1252567852.cos.ap-tokyo.myqcloud.com \
+        --acl public-read \
+        --cache-control "no-cache, no-store, must-revalidate"
